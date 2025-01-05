@@ -11,3 +11,13 @@ export const fetchStudents = async () => {
     throw error;
   }
 };
+
+
+export const deleteStudent = async (id: any) => {
+  try {
+    await axios.delete(`${API_BASE_URL}/api/students/${id}`);
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    throw error;
+  }
+};
