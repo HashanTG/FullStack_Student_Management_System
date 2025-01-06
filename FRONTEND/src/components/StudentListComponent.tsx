@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { fetchStudents, deleteStudent } from '../api/studentApi';
-
-interface Student {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  department: string;
-  yearOfEnrollment: number;
-}
+import { fetchStudents, deleteStudent, addStudent, updateStudent } from '../api/studentApi';
+import StudentForm from './StudentForm';
+import { Student } from '../types/student';
 
 const StudentListComponent: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
   const getStudents = async () => {
     try {
@@ -32,15 +27,35 @@ const StudentListComponent: React.FC = () => {
     getStudents();
   }, []);
 
-  const handleEdit = (id: number) => {
-    // Implement edit functionality
-    console.log(`Edit student with id: ${id}`);
+  const handleAdd = async (student: Omit<Student, 'id'>) => {
+    try {
+      await addStudent(student);
+      setIsAdding(false);
+      getStudents();
+    } catch (err) {
+      setError('Failed to add student. Please try again.');
+    }
+  };
+
+  const handleEdit = (student: Student) => {
+    setEditingStudent(student);
+  };
+
+  const handleUpdate = async (updatedStudent: Omit<Student, 'id'>) => {
+    if (editingStudent) {
+      try {
+        await updateStudent(editingStudent.id, updatedStudent);
+        setEditingStudent(null);
+        getStudents();
+      } catch (err) {
+        setError('Failed to update student. Please try again.');
+      }
+    }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await deleteStudent(id);
-      // After successful deletion, refresh the student list
       getStudents();
     } catch (err) {
       setError('Failed to delete student. Please try again later.');
@@ -53,6 +68,17 @@ const StudentListComponent: React.FC = () => {
   return (
     <div className="container mt-3">
       <h2 className="text-center mb-4">Student List</h2>
+      {isAdding ? (
+        <StudentForm onSubmit={handleAdd} onCancel={() => setIsAdding(false)} />
+      ) : (
+        <button className="btn btn-primary mb-3" onClick={() => setIsAdding(true)}>Add New Student</button>
+      )}
+      {editingStudent && (
+        <div className="mb-3">
+          <h3>Edit Student</h3>
+          <StudentForm student={editingStudent} onSubmit={handleUpdate} onCancel={() => setEditingStudent(null)} />
+        </div>
+      )}
       {students.length === 0 ? (
         <p>No students found.</p>
       ) : (
@@ -80,7 +106,7 @@ const StudentListComponent: React.FC = () => {
                 <td>
                   <button 
                     className="btn btn-primary btn-sm me-2" 
-                    onClick={() => handleEdit(student.id)}
+                    onClick={() => handleEdit(student)}
                   >
                     Edit
                   </button>
