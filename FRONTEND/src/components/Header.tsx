@@ -6,7 +6,7 @@ const Header: React.FC = () => {
       <div className="container d-flex justify-content-between">
         <a className="navbar-brand text-white fw-bold" href="#">
           <i className="fas fa-users me-2"></i>
-          Employee Management System
+          Employee Management System With backend
         </a>
         <div>
           <button className="btn btn-outline-light me-2" type="button">Login</button>
